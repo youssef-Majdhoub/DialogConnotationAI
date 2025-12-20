@@ -1,0 +1,16 @@
+# Data and Archives
+raw_data/
+archive.zip
+archive/
+*.tsv
+*.csv
+*.png
+# UI Assets
+UI_resources/
+*.png
+*.jpg
+*.svg
+# Environment and Cache
+venv/
+__pycache__/
+*.pyc
