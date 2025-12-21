@@ -14,3 +14,5 @@ UI_resources/
 venv/
 __pycache__/
 *.pyc
+# files generated from .ui files
+the_data_classification_interface/the_data_clasification_interface.py
