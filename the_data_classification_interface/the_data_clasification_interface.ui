@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,4">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
@@ -26,7 +26,11 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>Hamburger_icon.svg.png</normaloff>Hamburger_icon.svg.png</iconset>
+            <normaloff>Hamburger_icon.svg.png</normaloff>
+            <normalon>../UI_ressources/Hamburger_icon.svg.png</normalon>Hamburger_icon.svg.png</iconset>
+          </property>
+          <property name="autoRaise">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -34,7 +38,7 @@
          <widget class="QLabel" name="label">
           <property name="font">
            <font>
-            <pointsize>16</pointsize>
+            <pointsize>12</pointsize>
             <bold>true</bold>
            </font>
           </property>
@@ -62,9 +66,6 @@
         <widget class="QWidget" name="page"/>
         <widget class="QWidget" name="page_2"/>
        </widget>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2"/>
       </item>
      </layout>
     </item>
