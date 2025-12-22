@@ -52,14 +52,14 @@
      <number>0</number>
     </property>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,5">
+     <layout class="QHBoxLayout" name="main_horizantal_layout" stretch="1,6">
       <property name="sizeConstraint">
        <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
       </property>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QToolButton" name="toolButton">
+         <widget class="QToolButton" name="collapse_button">
           <property name="styleSheet">
            <string notr="true">background-color: rgba(156, 156, 156,0);</string>
           </property>
@@ -77,7 +77,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="title">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -102,7 +102,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QListWidget" name="listWidget">
+         <widget class="QListWidget" name="disscussions_list">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -122,7 +122,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QStackedWidget" name="stackedWidget">
+       <widget class="QStackedWidget" name="conversation_space">
         <property name="styleSheet">
          <string notr="true">background-color: rgba(240, 240, 240,0);</string>
         </property>
