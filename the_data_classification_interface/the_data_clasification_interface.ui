@@ -67,9 +67,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset>
-            <normaloff>Hamburger_icon.svg.png</normaloff>
-            <normalon>../UI_ressources/Hamburger_icon.svg.png</normalon>Hamburger_icon.svg.png</iconset>
+           <iconset resource="../UI_ressources/ressources.qrc">
+            <normaloff>:/icons/Hamburger_icon.png</normaloff>:/icons/Hamburger_icon.png</iconset>
           </property>
           <property name="autoRaise">
            <bool>false</bool>
@@ -119,6 +118,25 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QWidget" name="the_top_holder" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <spacer name="spacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
@@ -135,6 +153,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../UI_ressources/ressources.qrc"/>
+ </resources>
  <connections/>
 </ui>
