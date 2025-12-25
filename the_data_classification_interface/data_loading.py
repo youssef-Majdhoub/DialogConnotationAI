@@ -1,19 +1,78 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+import csv
 import os,ast
 
 conversations_path="./raw_data/archive/movie_conversations.tsv"
 lines_path="./raw_data/archive/movie_lines.tsv"
+class DataCleaner:
+    def __init__(self,paths,expected_columns):
+        self.paths=paths
+        self.expected_columns=expected_columns
+        self.index=0
+    def bad_line_function(self,bad_line):
+        n=self.expected_columns[self.index]
+        for i in range(n-1,len(bad_line)):
+            bad_line[i]=bad_line[i].replace('*','')
+            bad_line[i]=bad_line[i].strip()
+        for i in range(bad_line.count('')):
+            bad_line.remove('')
+        bad_line=bad_line[:n-1]+[' '.join(bad_line[n-1:])]
+        return bad_line
+    def clean(self,path):
+        cols=['a'+str(i) for i in range(self.expected_columns[self.index])]
+        re=pd.read_table(path,engine="python",quoting=csv.QUOTE_NONE,names=cols,on_bad_lines=self.bad_line_function)
+        return re.dropna()
+    def integrity_check(self,discussions_frame,lines_frame):
+        discussions_frame.columns=["per1","per2","movie_id","utterance_ids"]
+        lines_frame.columns=["line_id","character_id","movie_id","character_name","text"]
+        here_ids=set(lines_frame["line_id"])
+        needed_ids=set()
+        to_remove_diss=[]
+        for i in range(len(discussions_frame)):
+            lines=set(ast.literal_eval(discussions_frame.iloc[i]["utterance_ids"].replace(" ",",")))
+            if lines.issubset(here_ids):
+                needed_ids.update(lines)
+            else:
+                to_remove_diss.append(discussions_frame.index[i])
+        discussions_frame.drop(index=to_remove_diss,inplace=True)
+        lines_frame = lines_frame[lines_frame["line_id"].isin(needed_ids)]
+        return discussions_frame,lines_frame
+    def clean_path(self,path):
+        abs=os.path.abspath(path)
+        folder,name=os.path.split(abs)
+        parts=os.path.splitext(name)
+        return os.path.join(folder,parts[0]+'_cleaned'+parts[-1])
+    def save_cleaned(self,repair_mode=False):
+        clean_paths=[self.clean_path(path) for path in self.paths]
+        re=[]
+        for i in range(len(self.paths)):
+            self.index=i
+            if not(repair_mode) and os.path.exists(clean_paths[i]):continue
+            re.append(self.clean(self.paths[i]))
+        if(len(re)==2):
+            diss,line=re
+            diss,line=self.integrity_check(diss,line)
+            diss.to_csv(clean_paths[0],sep='\t',index=False,header=None)
+            line.to_csv(clean_paths[1],sep='\t',index=False,header=None)
+        elif len(re)==1:
+            print("integrity not checked please activate repair mode for safer data handling")
+        return clean_paths
 class DataProvider:
     def __init__(self):
-        if(os.path.exists("./data_set/data_stat.tsv")):
-           self.data_stat=pd.read_csv("./data_set/data_stat.tsv",sep="\t")
+        self.cleaner=DataCleaner([conversations_path,lines_path],[4,5])
+        self.conversations_path,self.lines_path=self.cleaner.save_cleaned()
+        stats_exists = os.path.exists("./data_set/data_stat.tsv")
+        conv_dir_exists = os.path.exists(self.conversations_path)
+        line_dir_exists = os.path.exists(self.lines_path)
+        if(stats_exists or conv_dir_exists or line_dir_exists):
+            self.repair_mode_from_raw_data() 
         else:
             self.create_data_set()
     def create_data_set(self):
-        conversations=pd.read_csv(conversations_path,sep="\t",header=None,names=["per1","per2","movie_id","utterance_ids"])
-        lines=pd.read_csv(lines_path,sep="\t",header=None,
+        conversations=pd.read_csv(self.conversations_path,sep="\t",header=None,names=["per1","per2","movie_id","utterance_ids"])
+        lines=pd.read_csv(self.lines_path,sep="\t",header=None,
                           names=["line_id","character_id","movie_id","character_name","text"],index_col="line_id")
         os.makedirs("./data_set/conversations",exist_ok=True)
         os.makedirs("./data_set/stats",exist_ok=True)
@@ -40,7 +99,6 @@ class DataProvider:
             disscussion["character_id"].append(conversation_lines.iloc[i]["character_id"])
             disscussion["text"].append(conversation_lines.iloc[i]["text"])
         disscussion_df=pd.DataFrame(disscussion)
-        print(disscussion_df.head())
         return disscussion_df
     def create_disscussion_stat(self,conversation_id,number_of_lines):
         disscussion_stat={"id":[],"line_index":[],"connotation":[]}
@@ -49,11 +107,10 @@ class DataProvider:
             disscussion_stat["line_index"].append(i)
             disscussion_stat["connotation"].append(np.nan)
         disscussion_stat_df=pd.DataFrame(disscussion_stat)
-        print(disscussion_stat_df.head())
         return disscussion_stat_df
     def data_set_append(self):
-        conversations=pd.read_csv(conversations_path,sep="\t",header=None,names=["per1","per2","movie_id","utterance_ids"])
-        lines=pd.read_csv(lines_path,sep="\t",header=None,
+        conversations=pd.read_csv(self.conversations_path,sep="\t",header=None,names=["per1","per2","movie_id","utterance_ids"])
+        lines=pd.read_csv(self.lines_path,sep="\t",header=None,
                           names=["line_id","character_id","movie_id","character_name","text"],index_col="line_id")
         self.data_stat=pd.read_csv("./data_set/data_stat.tsv",sep="\t")
         starting_index=max(self.stat_data["id"])
@@ -67,24 +124,34 @@ class DataProvider:
     def repair_mode_from_raw_data(self):
         os.makedirs("./data_set/conversations",exist_ok=True)
         os.makedirs("./data_set/stats",exist_ok=True)
-        conversations=pd.read_csv(conversations_path,sep="\t",header=None,names=["per1","per2","movie_id","utterance_ids"])
-        lines=pd.read_csv(lines_path,sep="\t",header=None,
+        self.conversations_path,self.lines_path=self.cleaner.save_cleaned()
+        conversations=pd.read_csv(self.conversations_path,sep="\t",header=None,names=["per1","per2","movie_id","utterance_ids"])
+        lines=pd.read_csv(self.lines_path,sep="\t",header=None,
                           names=["line_id","character_id","movie_id","character_name","text"],index_col="line_id")
-        self.data_stat=pd.read_csv("./data_set/data_stat.tsv",sep="\t")
+        try:
+            self.data_stat=pd.read_csv("./data_set/data_stat.tsv",sep="\t")
+        except:
+            self.data_stat=pd.DataFrame({"id":[],"disscussion_length":[]})
+        new={"id":[],"disscussion_length":[]}
+        ids=set(self.data_stat['id'].values)
         if len(self.data_stat)<len(conversations):
             print("there is missing conversations,please wait for a full report")
         for i in tqdm(range(len(conversations)), desc="Repairing dataset"):
-            disscussion_df=self.create_conversation(conversations,lines,i)
+            stat=1
             if not os.path.exists(f"./data_set/conversations/conversation_{i+1}.tsv"):
-                print(f"conversation {i+1} is missing, recreating it")
+                disscussion_df=self.create_conversation(conversations,lines,i)
                 disscussion_df.to_csv(f"./data_set/conversations/conversation_{i+1}.tsv",sep="\t",index=False)
+                stat=0
             if not os.path.exists(f"./data_set/stats/stat_{i+1}.tsv"):
-                print(f"stat for conversation {i+1} is missing, recreating it")
                 disscussion_stat_df=self.create_disscussion_stat(i,len(disscussion_df))
                 disscussion_stat_df.to_csv(f"./data_set/stats/stat_{i+1}.tsv",sep="\t",index=False)
-            if not (i+1) in self.data_stat["id"].values:
-                print(f"stat entry for conversation {i+1} is missing, adding it")
-                self.data_stat.loc[len(self.data_stat)]={"id":i+1,"disscussion_length":len(disscussion_df)}
+            if not (i+1) in ids:
+                if stat:
+                    disscussion_df=self.create_conversation(conversations,lines,i)
+                new['id'].append(i+1)
+                new['disscussion_length'].append(len(disscussion_df))
+                ids.add(i+1)
+        self.data_stat=pd.concat([self.data_stat,pd.DataFrame(new)])
         self.data_stat.to_csv("./data_set/data_stat.tsv",sep="\t",index=False)
     def get_conversation(self,conversation_id,include_stat=False):
         disscussion_df=pd.read_csv(f"./data_set/conversations/conversation_{conversation_id}.tsv",sep="\t",)
