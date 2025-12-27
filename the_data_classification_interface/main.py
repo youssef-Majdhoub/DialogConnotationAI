@@ -10,9 +10,9 @@ class ConversationPage(QWidget,Ui_page):
         super().__init__()
         self.setupUi(self)
         self.labels=[self.text_1,self.text_2,self.text_3,self.text_4]
-        self.connototations=[self.connotation_1,self.connotation_2,self.connotation_3,self.connotation_4]
+        self.connotations=[self.connotation_1,self.connotation_2,self.connotation_3,self.connotation_4]
         self.containers=[self.message_1,self.message_2,self.message_3,self.message_4]
-        for slider in self.connototations:
+        for slider in self.connotations:
             slider.setMinimum(-10)
             slider.setMaximum(10)
             slider.setValue(0)
@@ -23,7 +23,7 @@ class ConversationPage(QWidget,Ui_page):
                 self.labels[i].setWordWrap(True)
                 color_hex = colors[i].name()
                 self.containers[i].setStyleSheet(f"background-color: {color_hex};")
-                self.connototations[i].setValue(values[i])
+                self.connotations[i].setValue(values[i])
             else:
                 self.containers[i].hide()
 class DataClassificationApp(QMainWindow, Ui_MainWindow):
@@ -39,12 +39,16 @@ class DataClassificationApp(QMainWindow, Ui_MainWindow):
         self.disscussions_list.clicked.connect(self.diss_list_clicked)
         self.next.clicked.connect(self.conversation_next)
         self.previous.clicked.connect(self.conversation_previous)
+        self.save.clicked.connect(self.save_current)
+        self.close.clicked.connect(self.clean_diss_space)
     def collapse_diss_menu(self):
         self.title.hide()
         self.disscussions_list.hide()
         self.the_top_holder.show()
         self.main_horizantal_layout.setStretch(1, 20)
     def clean_diss_space(self):
+        self.save_current()
+        self.provider.data_stat.to_csv("./data_set/data_stat.tsv",sep="\t",index=False)
         while self.conversation_space.count()>0:
             widget=self.conversation_space.widget(0)
             self.conversation_space.removeWidget(widget)
@@ -81,14 +85,34 @@ class DataClassificationApp(QMainWindow, Ui_MainWindow):
                 item=self.disscussions_list.item(i)
                 item.setBackground(QColor(231, 230, 201))
         self.disscussions_list.setUpdatesEnabled(True)
+    def save_current(self):
+        if self.conversation_space.count()==0:
+            return
+        index=self.conversation_space.currentIndex()
+        page=self.conversation_space.widget(index)
+        conversation_id=self.disscussions_list.currentIndex().row()+1
+        i=0
+        for scaler in page.connotations:
+            self.provider.update_connotation(conversation_id,index*4+i,scaler.value())
+            i+=1
+        item=self.disscussions_list.item(conversation_id-1)
+        length=int(self.provider.data_stat['disscussion_length'].values[conversation_id-1])
+        done=int(self.provider.data_stat['is_complete'].values[conversation_id-1])
+        item.setText(f"conv{conversation_id}: {length} Lines | done {done}/{length}")
+        if done==length:
+            item.setBackground(QColor(200, 230, 201))
+        else:
+            item.setBackground(QColor(231, 230, 201))
     def conversation_next(self):
         index=self.conversation_space.currentIndex()
         if index<self.conversation_space.count()-1:
             self.conversation_space.setCurrentIndex(index+1)
+            self.save_current()
     def conversation_previous(self):
         index=self.conversation_space.currentIndex()
         if index>0:
             self.conversation_space.setCurrentIndex(index-1)
+            self.save_current()
     def expand_diss_menu(self):
         self.title.show()
         self.disscussions_list.show()
