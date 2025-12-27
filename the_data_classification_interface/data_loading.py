@@ -174,3 +174,5 @@ class DataProvider:
         disscussion_stat_df=pd.read_csv(f"./data_set/stats/stat_{conversation_id}.tsv",sep="\t")
         disscussion_stat_df.loc[disscussion_stat_df["lines_index"]==line_index,"connotation"]=connotation
         disscussion_stat_df.to_csv(f"./data_set/stats/stat_{conversation_id}.tsv",sep="\t",index=False)
+        is_completed=len(disscussion_stat_df)-disscussion_stat_df['connotation'].isna().sum()
+        self.data_stat.loc[self.data_stat['id']==conversation_id,'is_complete']=is_completed
