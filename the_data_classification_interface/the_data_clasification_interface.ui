@@ -146,6 +146,20 @@
             </spacer>
            </item>
            <item>
+            <widget class="QPushButton" name="close">
+             <property name="text">
+              <string>close</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="save">
+             <property name="text">
+              <string>save</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="previous">
              <property name="text">
               <string>previous</string>
