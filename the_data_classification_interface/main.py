@@ -8,6 +8,11 @@ import numpy as np
 
 
 class ConversationPage(QWidget, Ui_page):
+    """Purpose: This class represents a single "page" of conversation history (displaying 4 messages at a time).
+    It handles the display of text, the assignment of colors to characters,
+    and most importantly,the tracking of user inputs via sliders.
+    """
+
     def __init__(self, messages, values, colors):
         super().__init__()
         self.setupUi(self)

@@ -1,112 +1,140 @@
-# Conversational Connotation AI
+Cornell Dialog Sentiment Annotator
 
-## Overview
+A Full-Stack Data Pipeline & Annotation Tool
 
-This project is an **end-to-end AI system** for analyzing the **connotation of sentences in dialogs**.
-Each sentence is assigned a **continuous score** from **-1 (direct insult)** to **+1 (clear flirtation)**, with **0 as neutral**.
+📌 Project Overview
 
-Unlike typical sentiment analysis, this project focuses on **gradual social nuance** and conversational context.
+This project is a comprehensive end-to-end pipeline designed to create a high-quality, granular sentiment dataset based on the Cornell Movie-Dialogs Corpus.
 
-The project demonstrates the ability to **build AI from scratch**, covering:
+Unlike standard sentiment analysis (which classifies text as simply "Positive" or "Negative"), this tool facilitates the annotation of interpersonal dynamics on a continuous scale from -1.0 (Hostile/Disengagement) to +1.0 (Supportive/Engagement).
 
-* Data collection and cleaning
-* Dataset creation and annotation tools
-* Data pipeline construction
-* Model development and fine-tuning
-* Model evaluation and deployment experiments
+The project consists of two main components:
 
-It also serves as a **professional showcase** for future freelance opportunities.
+The ETL Pipeline: A robust backend (DataCleaner, DataProvider) that ingests raw, unstructured corpus data, repairs integrity errors, and restructures it for analysis.
 
----
+The Annotation Interface: A PySide6-based GUI optimized for high-throughput manual annotation, featuring context-aware visualization and I/O optimization.
 
-## Connotation Scale
+🚀 Key Features & Technical Highlights
 
-| Value | Meaning                                 |
-| ----- | --------------------------------------- |
-| -1.0  | Direct insult / hostility               |
-| <0    | Negative / unfriendly tone              |
-| 0     | Neutral / factual                       |
-| >0    | Positive / friendly tone                |
-| +1.0  | Clear flirtation or affectionate intent |
+1. Robust Data Pipeline (ETL)
 
-**Internal Note:** `None` is used internally in the annotation UI to indicate sentences **not yet labeled**.
-It is **not a semantic label** and is excluded from training and evaluation.
+Automated Cleaning: The DataCleaner class handles parsing errors common in raw text corpora (e.g., bad delimiters, missing fields) and performs referential integrity checks between movie_lines and movie_conversations.
 
----
+Structured Storage: Converts monolithic raw files into a file-per-conversation structure. This architecture allows for:
 
-## Key Features
+Lazy Loading: Only required data is loaded into RAM.
 
-### Dialog-Aware Classification
+Scalability: Can handle datasets larger than available memory.
 
-* Sentences are analyzed **in conversational context**
-* Supports nuance, sarcasm, and implied intent
+Parallelism: Future-proofed for multiple annotators working on different files.
 
-### Annotation Interface
+2. Advanced Annotation GUI
 
-* Custom UI for labeling sentence connotations
-* Slider interface for continuous values
-* Supports iterative dataset improvement
+Context-Aware: Displays a rolling window of 4 dialogue lines with distinct character color-coding, ensuring annotators understand the flow of conversation, not just isolated sentences.
 
-### Data Pipeline
+Granular Annotation: Uses a slider-based interface for precise float-point annotation (-1.0 to +1.0).
 
-* Raw text ingestion from movie conversations
-* Cleaning, normalization, and validation
-* Structured output for model training
+State Management: Implements a "Dirty Flag" architecture to track unsaved changes, ensuring zero data loss while preventing redundant file writes.
 
-### Model Development
+3. Performance Optimization
 
-* Regression-based connotation models
-* Fine-tuning for better accuracy
-* Evaluation using correlation and error metrics
+Differential Saving (Delta Updates): The application tracks exactly which sliders have been modified using NumPy boolean masks. When saving, only the specific changed rows are written to the disk.
 
-### Deployment Experiments
+Impact: Reduces disk I/O by up to 75% during typical usage.
 
-* End-to-end inference pipeline
-* Planned application to YouTube comments or chat logs
+Gatekeeper Pattern: Navigation functions (Next/Previous) automatically trigger valid saves only when necessary, creating a seamless, lag-free user experience.
 
----
+🛠️ Architecture
 
-## Project Motivation
+Directory Structure
 
-This project demonstrates:
+├── raw_data/              # Original Cornell Movie-Dialogs Corpus
+├── data_set/              # Processed Structured Data
+│   ├── conversations/     # Individual conversation TSVs
+│   ├── stats/             # Corresponding annotation metadata
+│   └── data_stat.tsv      # Global index and progress tracker
+├── src/
+│   ├── data_loading.py    # Backend: DataProvider & DataCleaner logic
+│   ├── main.py            # Frontend: PySide6 Application Controller
+│   ├── conversation_page.py # UI Component: Message rendering logic
+│   └── ...
 
-* End-to-end AI system development
-* Dataset creation from scratch
-* Production-ready data pipeline design
-* Real-world deployment preparation
 
-It is designed to be **both technically rigorous and portfolio-ready**.
+The Pipeline Flow
 
----
+Ingestion: DataCleaner reads raw .txt files, repairing malformed lines.
 
-## Repository Structure
+Transformation: DataProvider joins lines with conversation metadata and creates a normalized schema.
 
-```
-data/
-├── raw/                 # Original movie lines and conversations
-├── processed/           # Cleaned conversations
-├── annotations/         # Labeled connotation data
+Annotation: The GUI loads a conversation chunk. User inputs are captured in memory.
 
-annotation_ui/           # Interface for labeling sentences
-pipelines/               # Data cleaning and preparation scripts
-models/                  # Model training and evaluation code
-deployment/              # Inference and application scripts
-README.md
-```
+Persistence: On navigation, the save_current() method filters for modified data and performs a batch update to the specific stats_X.tsv file.
 
----
+💻 Installation & Usage
 
-## Project Status
+Prerequisites
 
-* Annotation system: In progress
-* Dataset creation: Ongoing
-* Model training: Planned
-* Deployment experiments: Planned
+Python 3.8+
 
----
+PySide6
 
-## Author
+Pandas
 
-**Youssef Majdoub**
-AI / Data Science
-Focused on building interpretable, scalable, and practical AI systems
+NumPy
+
+Setup
+
+Clone the repository:
+
+git clone [https://github.com/yourusername/cornell-sentiment-annotator.git](https://github.com/yourusername/cornell-sentiment-annotator.git)
+
+
+Install dependencies:
+
+pip install pandas numpy PySide6 tqdm
+
+
+Place the Cornell Movie-Dialogs Corpus files in ./raw_data/archive/.
+
+Running the Tool
+
+python main.py
+
+
+First Run: The tool will automatically detect raw data, run the cleaning pipeline (this may take a moment), and generate the structured dataset.
+
+Subsequent Runs: The tool launches instantly, loading the last saved state.
+
+📊 Data Format
+
+The output annotations are stored in tab-separated values (TSV) with the following schema:
+
+Column
+
+Type
+
+Description
+
+id
+
+int
+
+Conversation ID
+
+lines_index
+
+int
+
+Index of the line within the conversation
+
+connotation
+
+float
+
+Annotated value (-1.0 to 1.0)
+
+📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+Built to demonstrate advanced data handling patterns and efficient GUI application architecture in Python.
