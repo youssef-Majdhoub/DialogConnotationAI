@@ -18,7 +18,7 @@ The Annotation Interface: A PySide6-based GUI optimized for high-throughput manu
 
 1. Robust Data Pipeline (ETL)
 
-Automated Cleaning: The DataCleaner class handles parsing errors common in raw text corpora (e.g., bad delimiters, missing fields) and performs referential integrity checks between movie_lines and movie_conversations.
+Automated Cleaning: The DataCleaner class handles parsing errors common in raw text corpora (e.g., bad delimiters, missing fields) and performs referential integrity checks between movie_lines and movie_conversations.A
 
 Structured Storage: Converts monolithic raw files into a file-per-conversation structure. This architecture allows for:
 
@@ -58,6 +58,9 @@ Directory Structure
 │   ├── main.py            # Frontend: PySide6 Application Controller
 │   ├── conversation_page.py # UI Component: Message rendering logic
 │   └── ...
+├── requirements.txt       # Project dependencies
+└── README.md              # Project documentation
+
 
 
 The Pipeline Flow
@@ -76,12 +79,6 @@ Prerequisites
 
 Python 3.8+
 
-PySide6
-
-Pandas
-
-NumPy
-
 Setup
 
 Clone the repository:
@@ -89,9 +86,11 @@ Clone the repository:
 git clone [https://github.com/yourusername/cornell-sentiment-annotator.git](https://github.com/yourusername/cornell-sentiment-annotator.git)
 
 
-Install dependencies:
 
-pip install pandas numpy PySide6 tqdm
+Install the required dependencies:
+
+pip install -r requirements.txt
+
 
 
 Place the Cornell Movie-Dialogs Corpus files in ./raw_data/archive/.
@@ -99,6 +98,7 @@ Place the Cornell Movie-Dialogs Corpus files in ./raw_data/archive/.
 Running the Tool
 
 python main.py
+
 
 
 First Run: The tool will automatically detect raw data, run the cleaning pipeline (this may take a moment), and generate the structured dataset.
@@ -109,29 +109,12 @@ Subsequent Runs: The tool launches instantly, loading the last saved state.
 
 The output annotations are stored in tab-separated values (TSV) with the following schema:
 
-Column
+Column          Type    Description
+-----------------------------------------------------------
+id              int     Conversation ID
+lines_index     int     Index of the line within the conversation
+connotation     float   Annotated value (-1.0 to 1.0)
 
-Type
-
-Description
-
-id
-
-int
-
-Conversation ID
-
-lines_index
-
-int
-
-Index of the line within the conversation
-
-connotation
-
-float
-
-Annotated value (-1.0 to 1.0)
 
 📝 License
 
